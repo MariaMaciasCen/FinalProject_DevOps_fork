@@ -9,7 +9,6 @@ pipeline {
 
     stages {
         
-        stages {
           stage("build & SonarQube analysis") {
             agent any
             steps {
@@ -18,7 +17,7 @@ pipeline {
               }
             }
           }
-          
+
           stage("Quality Gate") {
             steps {
               timeout(time: 1, unit: 'HOURS') {
@@ -26,7 +25,6 @@ pipeline {
               }
             }
           }
-        }
 
         post {
             // If Maven was able to run the tests, even if some of the test
