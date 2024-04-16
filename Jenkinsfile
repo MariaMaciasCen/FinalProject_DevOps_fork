@@ -20,7 +20,7 @@ pipeline {
 
           stage("Quality Gate") {
             steps {
-              timeout(time: 1, unit: 'HOURS') {
+              timeout(time: 2, unit: 'MINUTES') {
                 waitForQualityGate abortPipeline: true
               }
             }
@@ -31,8 +31,22 @@ pipeline {
             success {
                 archiveArtifacts 'target/*.jar'
             }
-        }
+            }
           }
+
+          stage('Code Coverage') {
+            steps {
+                // Generate JaCoCo code coverage report
+                bat 'mvn jacoco:report'
+
+                // Assuming you want to archive the reports and add a post-build action
+                script {
+                    def jacocoReportPath = '**/target/site/jacoco/*.html'
+                    // Archive the JaCoCo reports
+                    archiveArtifacts artifacts: jacocoReportPath, fingerprint: true
+                }
+            }
+        }
 
         
     }
