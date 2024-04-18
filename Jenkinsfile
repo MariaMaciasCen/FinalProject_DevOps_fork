@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     tools {
-        // Install the Maven version configured as "M3" and add it to the path.
         maven "MAVEN3"
+         jdk 'JDK17'
     }
     
 
@@ -13,14 +13,11 @@ pipeline {
             steps {
 
 		    echo 'Running build ...'
-                 // To run Maven on a Windows agent, use
                 bat "mvn -Dmaven.test.failure.ignore=true clean package"
 
             }
 
 	        post {
-            // If Maven was able to run the tests, even if some of the test
-            // failed, record the test results and archive the jar file.
                 success {
                     junit '**/target/surefire-reports/TEST-*.xml'
                     archiveArtifacts 'target/*.jar'
@@ -48,14 +45,49 @@ pipeline {
 
           stage('Code Coverage') {
             steps {
-                // Generate JaCoCo code coverage report
                 bat 'mvn jacoco:report'
-
-                // Assuming you want to archive the reports and add a post-build action
                 script {
                     def jacocoReportPath = '**/target/site/jacoco/*.html'
-                    // Archive the JaCoCo reports
                     archiveArtifacts artifacts: jacocoReportPath, fingerprint: true
+                }
+            }
+        }
+
+         // New stages for deployment
+        stage('Deploy to Dev Env') {
+            steps {
+                script {
+                    echo 'Deploying to Development Environment...'
+                    // Example deployment command, replace with actual deployment steps
+                    bat 'scp target/*.jar user@dev-server:/path/to/deploy'
+                    bat 'ssh user@dev-server "java -jar /path/to/deploy/your-app.jar"'
+                }
+            }
+        }
+
+        stage('Deploy to QAT Env') {
+            steps {
+                script {
+                    echo 'Deploying to QAT Environment...'
+                    bat 'scp target/*.jar user@qat-server:/path/to/deploy'
+                }
+            }
+        }
+
+        stage('Deploy to Staging Env') {
+            steps {
+                script {
+                    echo 'Deploying to Staging Environment...'
+                    bat 'scp target/*.jar user@staging-server:/path/to/deploy'
+                }
+            }
+        }
+
+        stage('Deploy to Production Env') {
+            steps {
+                script {
+                    echo 'Deploying to Production Environment...'
+                    bat 'scp target/*.jar user@production-server:/path/to/deploy'
                 }
             }
         }
